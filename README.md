@@ -1,15 +1,15 @@
-该库使用教程:
+该库的使用方法：
 
-package github.javaguide.dynamicProxy.cglibDynamicProxy;
-
+```
 public class AliSmsService {
     public String send(String message) {
         System.out.println("send message:" + message);
         return message;
     }
 }
-
-
+```
+```
+//方法拦截器
 import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
 
@@ -38,8 +38,8 @@ public class DebugMethodInterceptor implements MethodInterceptor {
     }
 
 }
-
-
+```
+```
 import net.sf.cglib.proxy.Enhancer;
 
 public class CglibProxyFactory {
@@ -57,16 +57,14 @@ public class CglibProxyFactory {
         return enhancer.create();
     }
 }
-
-
+```
+```
 AliSmsService aliSmsService = (AliSmsService) CglibProxyFactory.getProxy(AliSmsService.class);
 aliSmsService.send("java");
-
-
-
-
+```
 打印
-
+```
 before method send
 send message:java
 after method send
+```
