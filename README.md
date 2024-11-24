@@ -1,20 +1,72 @@
-cglib [![Build Status](https://travis-ci.org/cglib/cglib.svg?branch=master)](https://travis-ci.org/cglib/cglib)
-================
+该库使用教程:
 
-***IMPORTANT NOTE: cglib is unmaintained and does not work well (or possibly at all?) in newer JDKs, particularly JDK17+. If you need to support newer JDKs, we will accept well-tested well-thought-out patches... but you'll probably have better luck migrating to something like [ByteBuddy](https://bytebuddy.net).***
+package github.javaguide.dynamicProxy.cglibDynamicProxy;
 
-Byte Code Generation Library is high level API to generate and transform JAVA byte code.
-It is used by AOP, testing, data access frameworks to generate dynamic proxy objects and intercept field access.
-https://github.com/cglib/cglib/wiki
+public class AliSmsService {
+    public String send(String message) {
+        System.out.println("send message:" + message);
+        return message;
+    }
+}
 
-How To: https://github.com/cglib/cglib/wiki/How-To
 
-Latest Release: https://github.com/cglib/cglib/releases/latest
+import net.sf.cglib.proxy.MethodInterceptor;
+import net.sf.cglib.proxy.MethodProxy;
 
-All Releases: https://github.com/cglib/cglib/releases
+import java.lang.reflect.Method;
 
-cglib-#.#_#.jar             binary distribution, CGLIB classes only, 
-it must be used to extend cglib classes dependant on ASM API 
+/**
+ * 自定义MethodInterceptor
+ */
+public class DebugMethodInterceptor implements MethodInterceptor {
 
-cglib-nodep-#.#_#.jar       binary distribution, CGLIB and renamed ASM classes, 
-not extendable 
+
+    /**
+     * @param o           被代理的对象（需要增强的对象）
+     * @param method      被拦截的方法（需要增强的方法）
+     * @param args        方法入参
+     * @param methodProxy 用于调用原始方法
+     */
+    @Override
+    public Object intercept(Object o, Method method, Object[] args, MethodProxy methodProxy) throws Throwable {
+        //调用方法之前，我们可以添加自己的操作
+        System.out.println("before method " + method.getName());
+        Object object = methodProxy.invokeSuper(o, args);
+        //调用方法之后，我们同样可以添加自己的操作
+        System.out.println("after method " + method.getName());
+        return object;
+    }
+
+}
+
+
+import net.sf.cglib.proxy.Enhancer;
+
+public class CglibProxyFactory {
+
+    public static Object getProxy(Class<?> clazz) {
+        // 创建动态代理增强类
+        Enhancer enhancer = new Enhancer();
+        // 设置类加载器
+        enhancer.setClassLoader(clazz.getClassLoader());
+        // 设置被代理类
+        enhancer.setSuperclass(clazz);
+        // 设置方法拦截器
+        enhancer.setCallback(new DebugMethodInterceptor());
+        // 创建代理类
+        return enhancer.create();
+    }
+}
+
+
+AliSmsService aliSmsService = (AliSmsService) CglibProxyFactory.getProxy(AliSmsService.class);
+aliSmsService.send("java");
+
+
+
+
+打印
+
+before method send
+send message:java
+after method send
